@@ -50,6 +50,38 @@ To run this project, you need to have the following tools and libraries installe
 
 ## Build Instructions for Phase-1
 
+## Necessary Changes in Makefile
+
+To ensure proper compilation and linking of the project, you may need to make the following changes to the Makefile.
+
+### Update CFLAGS
+
+Modify the `CFLAGS` variable to include the appropriate compiler flags and include paths:
+
+```makefile
+CFLAGS = /std:c11 /W3 /showIncludes /Iinclude \
+         /IC:"<path_to_your_include_directory>"
+```
+
+### Important Notes
+
+- Make sure to replace `<path_to_your_include_directory>` with the correct paths for your system.
+
+- **Update CUDAFLAGS (if needed)**  
+  If you are using CUDA, ensure that the `CUDAFLAGS` variable is set correctly:
+
+## Necessary Changes in build.bat
+
+To configure the build environment properly, you may need to make the following updates to the `build.bat` script.
+
+### Set INCLUDE Path
+
+Add the following line to set the `INCLUDE` environment variable:
+
+```batch
+set INCLUDE=<path_to_your_include_directory>;%INCLUDE%
+```
+
 To build the project, follow these steps:
 
 1. **Clone the Repository**:
