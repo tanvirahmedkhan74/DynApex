@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 void array_sum(float* A, float* B, float* C, int n, const char* method);
-void sumArrayOnGPU(float* A, float* B, float* C, int N);
+
 void sumArrayWithAVX(float* A, float* B, float* C, int N);
 void sumArrayWithOpenMP(float* A, float* B, float* C, int N);
 
