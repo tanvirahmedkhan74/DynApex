@@ -3,16 +3,86 @@
 *.bin
 *.obj
 
-# Ignore specific folders
+# Ignore build and output directories
 obj/
 bin/
-
-# Ignore any obj or bin folders at any level
 */obj/
 */bin/
+out/
+Debug/
+Release/
+x64/
+x86/
 
-# Ignore other files
+# Ignore other Visual Studio-generated files and directories
+.vscode/
+.vs/
+.vscode/*
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.ipch/
+*.aps
+*.pch
+*.ilk
+*.log
+*.tlog
+*.lastbuildstate
+*.sdf
+*.opensdf
+*.ncb
+*.opendb
+*.unsuccessfulbuild
+
+# Ignore intermediate and temporary files
+*.tmp
+*.temp
+*.log
+*.cache
+*.pdb
+*.idb
+
+# Ignore compiled DLLs and executables
 *.exe
+*.dll
 *.lib
 *.exp
-*.vscode
+*.pyd
+
+# Ignore NuGet packages and generated files
+*.nuget/
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+
+# Ignore build artifacts and configuration
+*_i.c
+*_p.c
+*_i.h
+*.pidb
+*.obj/
+*.rsp
+*.res
+*.rsrc
+
+# Ignore test result files
+*.trx
+*.coverage
+*.testsettings
+*.runsettings
+
+# Ignore temporary files used by Windows
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Ignore auto-generated files for Windows Forms and WPF
+*.g.i.cs
+*.g.cs
+*.designer.cs
+
+# Ignore local configuration files
+*.config.local
+*.settings
