@@ -31,4 +31,7 @@ run-dispatcher:
 
 clean:
 	rm -rf $(BUILD_DIR) $(LOGS_DIR)
+	$(MAKE) reset-src
 
+reset-src:
+	sed -i '/#pragma omp/d' $(SRC)

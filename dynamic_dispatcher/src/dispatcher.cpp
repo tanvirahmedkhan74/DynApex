@@ -4,10 +4,42 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
+#include <chrono>
+
+void log_execution(const std::string &mode, double executionTime, const std::string &modifiedFileContent) {
+    std::ofstream logFile("logs/execution_log.txt", std::ios::app);
+    if (!logFile.is_open()) {
+        std::cerr << "Error: Unable to write to log file.\n";
+        return;
+    }
+
+    logFile << "======================== Execution Log ========================\n";
+    logFile << "Run Mode       : " << (mode == "c" ? "CPU" : "GPU") << "\n";
+    logFile << "Execution Time : " << executionTime << " seconds\n";
+    logFile << "Modified Source Code:\n";
+    logFile << "************************************************************\n";
+    logFile << modifiedFileContent;
+    logFile << "************************************************************\n";
+    logFile.close();
+}
+
+std::string read_file(const std::string &filePath) {
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        std::cerr << "Error: Unable to read the source file.\n";
+        return "";
+    }
+    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
+    return content;
+}
 
 void compile_and_execute(const std::string &filePath, char executionMode) {
     std::string outputBinary = "build/main_parallel";
     std::string compileCommand = "g++ -fopenmp -o " + outputBinary + " " + filePath;
+
+    // Start timing
+    auto startTime = std::chrono::high_resolution_clock::now();
     if (std::system(compileCommand.c_str()) != 0) {
         std::cerr << "Error: Compilation failed.\n";
         return;
@@ -17,16 +49,18 @@ void compile_and_execute(const std::string &filePath, char executionMode) {
     std::cout << "Running the program...\n";
     if (std::system(("./" + outputBinary).c_str()) != 0) {
         std::cerr << "Error: Execution failed.\n";
+        return;
     }
 
-    // Log execution mode
-    std::ofstream logFile("logs/execution_log.txt", std::ios::app);
-    if (logFile.is_open()) {
-        logFile << (executionMode == 'c' ? "CPU" : "GPU") << " execution\n";
-        logFile.close();
-    } else {
-        std::cerr << "Error: Unable to write to log file.\n";
-    }
+    // End timing
+    auto endTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> executionTime = endTime - startTime;
+
+    // Read modified file for logging
+    std::string modifiedFileContent = read_file(filePath);
+
+    // Log execution details
+    log_execution(std::string(1, executionMode), executionTime.count(), modifiedFileContent);
 }
 
 int main(int argc, char *argv[]) {
