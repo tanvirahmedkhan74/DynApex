@@ -6,7 +6,7 @@
 #include <ctime>
 #include <chrono>
 
-void log_execution(const std::string &mode, double executionTime, const std::string &modifiedFileContent) {
+void log_execution(const std::string &mode, double executionTime) {
     std::ofstream logFile("logs/execution_log.txt", std::ios::app);
     if (!logFile.is_open()) {
         std::cerr << "Error: Unable to write to log file.\n";
@@ -14,29 +14,16 @@ void log_execution(const std::string &mode, double executionTime, const std::str
     }
 
     logFile << "======================== Execution Log ========================\n";
-    logFile << "Run Mode       : " << (mode == "c" ? "CPU" : "GPU") << "\n";
+    logFile << "Run Mode       : " << (mode == "n" ? "Normal" : (mode == "c" ? "CPU" : "GPU")) << "\n";
     logFile << "Execution Time : " << executionTime << " seconds\n";
-    logFile << "Modified Source Code:\n";
-    logFile << "************************************************************\n";
-    logFile << modifiedFileContent;
-    logFile << "************************************************************\n";
     logFile.close();
-}
-
-std::string read_file(const std::string &filePath) {
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        std::cerr << "Error: Unable to read the source file.\n";
-        return "";
-    }
-    std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    file.close();
-    return content;
 }
 
 void compile_and_execute(const std::string &filePath, char executionMode) {
     std::string outputBinary = "build/main_parallel";
-    std::string compileCommand = "g++ -fopenmp -o " + outputBinary + " " + filePath;
+    std::string compileCommand = (executionMode == 'n') 
+                                ? "g++ -o " + outputBinary + " " + filePath 
+                                : "g++ -fopenmp -o " + outputBinary + " " + filePath;
 
     // Start timing
     auto startTime = std::chrono::high_resolution_clock::now();
@@ -56,16 +43,13 @@ void compile_and_execute(const std::string &filePath, char executionMode) {
     auto endTime = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> executionTime = endTime - startTime;
 
-    // Read modified file for logging
-    std::string modifiedFileContent = read_file(filePath);
-
     // Log execution details
-    log_execution(std::string(1, executionMode), executionTime.count(), modifiedFileContent);
+    log_execution(std::string(1, executionMode), executionTime.count());
 }
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
-        std::cerr << "Usage: ./dispatcher <source_file> <mode: c|g|r>\n";
+        std::cerr << "Usage: ./dispatcher <source_file> <mode: n|c|g|r>\n";
         return 1;
     }
 
@@ -76,6 +60,12 @@ int main(int argc, char *argv[]) {
         // Randomly decide between CPU ('c') and GPU ('g')
         std::srand(std::time(nullptr));
         executionMode = (std::rand() % 2 == 0) ? 'c' : 'g';
+    }
+
+    if (executionMode == 'n') {
+        std::cout << "Running program in Normal mode (no pragmas).\n";
+        compile_and_execute(sourceFilePath, executionMode);
+        return 0;
     }
 
     std::cout << "Checking dependencies...\n";
@@ -94,4 +84,3 @@ int main(int argc, char *argv[]) {
     compile_and_execute(sourceFilePath, executionMode);
     return 0;
 }
-

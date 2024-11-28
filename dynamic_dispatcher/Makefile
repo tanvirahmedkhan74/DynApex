@@ -27,7 +27,7 @@ $(OUTPUT): $(DEPENDENCY_CHECKER) $(PRAGMA_INJECTOR) $(DISPATCHER)
 	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -o $(OUTPUT) $(DEPENDENCY_CHECKER) $(PRAGMA_INJECTOR) $(DISPATCHER)
 
 run-dispatcher:
-	$(OUTPUT) $(SRC) r # Change 'r' to 'c' or 'g' for specific modes
+	$(OUTPUT) $(SRC) r # Change 'r' to 'n', 'c', or 'g' for specific modes
 
 clean:
 	rm -rf $(BUILD_DIR) $(LOGS_DIR)
@@ -35,3 +35,16 @@ clean:
 
 reset-src:
 	sed -i '/#pragma omp/d' $(SRC)
+
+compare:
+	@echo "Running in Normal mode..."
+	$(OUTPUT) $(SRC) n
+
+	@echo "Running in CPU mode..."
+	$(OUTPUT) $(SRC) c
+
+	@echo "Removing OpenMP pragmas for GPU mode..."
+	sed -i '/#pragma omp/d' $(SRC)
+
+	@echo "Running in GPU mode..."
+	$(OUTPUT) $(SRC) g
