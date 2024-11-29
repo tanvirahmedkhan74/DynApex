@@ -1,108 +1,76 @@
-# Hybrid CPU-GPU Accelerated Query Processing for Dynamic Data Structures
+# DynApex
 
-**October 19, 2024**
+### Dynamic Analysis and Execution Profiling for Extreme Parallelization.
 
----
+##### Emphasizes dynamic analysis and peak performance.
 
-## Project Overview
 
-This project focuses on developing a **Generic Framework for Energy-Efficient Optimization** in query processing using a hybrid approach that leverages both CPU and GPU capabilities. The framework aims to enhance performance and energy efficiency when dealing with dynamic data structures.
+## Overview
 
----
+**DynApex** is a tool designed to analyze C++ code for parallelization opportunities and dynamically dispatch execution to either the CPU or GPU based on profiling data.  It performs data dependency analysis to determine compatibility with parallel execution and then uses profiling to make informed runtime decisions.
 
-## Authors
+## Features
 
-- **Tanvir Ahmed Khan**  
-  Email: [khan.tanvir01@northsouth.edu](mailto:khan.tanvir01@northsouth.edu)
+* **Data Dependency Analysis:**  Analyzes code for data dependencies to ensure safe parallelization.
+* **Dynamic Dispatch:**  Selects the optimal execution platform (CPU or GPU) based on profiling results.
+* **Profiling and Visualization:** Generates performance profiles and dependency graphs for analysis.
+* **OpenMP Support:** Leverages OpenMP for parallel execution on the CPU.  (GPU support requires adapting the code for a suitable framework like CUDA or OpenCL - this is not yet fully implemented).
 
-- **Mahir Shahriar Tamim**  
-  Email: [mahir.tamim@northsouth.edu](mailto:mahir.tamim@northsouth.edu)
+## Directory Hierarchy
 
-- **Mahiyat Nawar Mantaqa**  
-  Email: [mahiyat.mantaqa@northsouth.edu](mailto:mahiyat.mantaqa@northsouth.edu)
-
-- **Maharun Afroz**  
-  Email: [maharun.afroz@northsouth.edu](mailto:maharun.afroz@northsouth.edu)
-
----
-
-## Course Instructor
-
-**Dr. Md Shahriar Karim**  
-Associate Professor, Department of Computer Science
-
----
----
-
-## Requirements
-
-To run this project, you need to have the following tools and libraries installed:
-
-- **CUDA Toolkit**
-- **OpenMP**
-- **GCC**
-- **NVCC (NVIDIA CUDA Compiler)**
-- **Windows SDK**
-- **Make**
-- **AVX Specification**
-
----
-
-## Build Instructions for Phase-1
-
-## Necessary Changes in Makefile
-
-To ensure proper compilation and linking of the project, you may need to make the following changes to the Makefile.
-
-### Update CFLAGS
-
-Modify the `CFLAGS` variable to include the appropriate compiler flags and include paths:
-
-```makefile
-CFLAGS = /std:c11 /W3 /showIncludes /Iinclude \
-         /IC:"<path_to_your_include_directory>"
+```
+dynamic_dispatcher/
+├── include/       // Header files
+│   └── ...
+├── src/          // Source code
+│   ├── main.cpp    // Main program
+│   ├── dependency_checker.cpp // Dependency analysis
+│   ├── pragma_injector.cpp // OpenMP pragma injection (if applicable)
+│   └── dispatcher.cpp       // Dynamic dispatcher
+├── build/        // Compiled binaries
+├── logs/         // Profiling logs and graphs
+└── Makefile      // Build instructions
 ```
 
-### Important Notes
+## Build and Run
 
-- Make sure to replace `<path_to_your_include_directory>` with the correct paths for your system.
+### Compile Normally:
 
-- **Update CUDAFLAGS (if needed)**  
-  If you are using CUDA, ensure that the `CUDAFLAGS` variable is set correctly:
+Run the program without profiling:
 
-## Necessary Changes in build.bat
-
-To configure the build environment properly, you may need to make the following updates to the `build.bat` script.
-
-### Set INCLUDE Path
-
-Add the following line to set the `INCLUDE` environment variable:
-
-```batch
-set INCLUDE=<path_to_your_include_directory>;%INCLUDE%
+```bash
+make
+make run-dispatcher 
 ```
 
-To build the project, follow these steps:
+### Profile Dispatcher:
 
-1. **Clone the Repository**:
+Recompile with profiling (`-pg`), run, and generate a dependency graph:
 
-   First, clone the repository to your local machine using the following command:
+```bash
+make profile-dispatcher MODE=n 
+```
+(Replace `n` with `c` for CPU-optimized or `g` for GPU-optimized mode).
 
-   ```bash
-   git clone <repository-url>
 
-2. **Set Up Environment Variables**:
+### Compare All Modes:
 
-   Make sure to add the following path to your system environment variables:
+Automates profiling and graph generation for all modes:
 
-   - **Include Path**: `C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\ucrt`
+```bash
+make compare
+```
 
-   This will ensure that the compiler can locate the necessary headers.
+### Clean Project:
 
----
-3. **Run the Build Script**:
+Remove binaries, logs, and temporary files:
 
-   Navigate to the project directory and execute the build script:
+```bash
+make clean
+```
 
-   ```bash
-   ./build.bat
+## Future Improvements
+
+* Full GPU support.
+* Automatic dependency removal (`--rd` flag).
+* More sophisticated profiling and analysis capabilities.
