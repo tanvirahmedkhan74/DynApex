@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
+#include <thread>
+#include <array>
+#include <memory>
 
 void log_execution(const std::string &mode, double executionTime) {
     std::ofstream logFile("logs/execution_log.txt", std::ios::app);
@@ -19,32 +22,83 @@ void log_execution(const std::string &mode, double executionTime) {
     logFile.close();
 }
 
+void log_gpu_stats() {
+    const std::string logFolder = "logs/";
+    const std::string gpuLogFilePath = logFolder + "gpu_stat.csv";
+
+    // Ensure the logs directory exists
+    system(("mkdir -p " + logFolder).c_str());
+
+    std::ofstream gpuLogFile(gpuLogFilePath, std::ios::app);
+    if (!gpuLogFile.is_open()) {
+        std::cerr << "Error: Unable to write to GPU log file.\n";
+        return;
+    }
+
+    // Log headers if the file is empty
+    gpuLogFile.seekp(0, std::ios::end);
+    if (gpuLogFile.tellp() == 0) {
+        gpuLogFile << "Timestamp,Temperature (C),Power (W),Memory Used (MB),Utilization (%),Clock Speed (MHz)\n";
+    }
+
+    // Run nvidia-smi command and capture the output
+    std::array<char, 256> buffer;
+    std::string command = "nvidia-smi --query-gpu=timestamp,temperature.gpu,power.draw,memory.used,utilization.gpu,clocks.sm --format=csv,noheader,nounits -i 0"; // GPU 0 stats
+    std::shared_ptr<FILE> pipe(popen(command.c_str(), "r"), pclose);
+    
+    if (!pipe) {
+        std::cerr << "Error: Unable to run nvidia-smi command.\n";
+        return;
+    }
+
+    std::string result;
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+
+    // Write the stats into the CSV file
+    gpuLogFile << result;
+    gpuLogFile.close();
+}
+
 void compile_and_execute(const std::string &filePath, char executionMode) {
-    std::string outputBinary = "build/main_parallel";
-    std::string compileCommand = (executionMode == 'n') 
-                                ? "g++ -o " + outputBinary + " " + filePath 
-                                : "g++ -fopenmp -o " + outputBinary + " " + filePath;
+    const std::string outputBinary = "build/main_parallel";
+    const std::string compileCommand = (executionMode == 'n') 
+                                        ? "g++ -o " + outputBinary + " " + filePath 
+                                        : "g++ -fopenmp -o " + outputBinary + " " + filePath;
 
     // Start timing
     auto startTime = std::chrono::high_resolution_clock::now();
+
     if (std::system(compileCommand.c_str()) != 0) {
-        std::cerr << "Error: Compilation failed.\n";
+        std::cerr << "Compilation failed!\n";
         return;
     }
 
-    // Execute the binary
-    std::cout << "Running the program...\n";
-    if (std::system(("./" + outputBinary).c_str()) != 0) {
-        std::cerr << "Error: Execution failed.\n";
-        return;
+    // Run the program
+    std::string executeCommand = outputBinary;
+    if (executionMode == 'g') {
+        // Run GPU-specific actions
+        std::thread gpuLogThread([&]() {
+            while (true) {
+                log_gpu_stats();
+                std::this_thread::sleep_for(std::chrono::seconds(1)); // Log every second
+            }
+        });
+
+        gpuLogThread.detach();  // Detach thread to continue logging GPU stats while running
     }
 
-    // End timing
-    auto endTime = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> executionTime = endTime - startTime;
+    auto executionStart = std::chrono::high_resolution_clock::now();
+    if (std::system(executeCommand.c_str()) != 0) {
+        std::cerr << "Execution failed!\n";
+        return;
+    }
+    auto executionEnd = std::chrono::high_resolution_clock::now();
 
-    // Log execution details
-    log_execution(std::string(1, executionMode), executionTime.count());
+    // Calculate execution time
+    std::chrono::duration<double> executionTime = executionEnd - executionStart;
+    log_execution(executionMode == 'g' ? "GPU" : (executionMode == 'c' ? "CPU" : "Normal"), executionTime.count());
 }
 
 int main(int argc, char *argv[]) {
@@ -53,7 +107,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::string sourceFilePath = argv[1];
+    const std::string sourceFilePath = argv[1];
     char executionMode = argv[2][0];
 
     if (executionMode == 'r') {
