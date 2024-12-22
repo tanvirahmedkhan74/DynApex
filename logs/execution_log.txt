@@ -1,9 +1,13 @@
 ======================== Execution Log ========================
 Run Mode       : Normal
-Execution Time : 10.0399 seconds
+Execution Time : 6.40378 seconds
 ======================== Execution Log ========================
 Run Mode       : CPU
-Execution Time : 4.64558 seconds
+Execution Time : 4.68323 seconds
+Calculated Speedup : 2.10526
+Actual Speedup     : 1.36739
 ======================== Execution Log ========================
 Run Mode       : GPU
-Execution Time : 4.7233 seconds
+Execution Time : 2.75337 seconds
+Calculated Speedup : 3.25733
+Actual Speedup     : 2.3258

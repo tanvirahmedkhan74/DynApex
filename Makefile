@@ -1,7 +1,7 @@
 # Compiler and flags
 CXX = g++
 CXXFLAGS = -std=c++17 -fopenmp -O2
-PROFILING_FLAGS = -pg
+PROFILING_FLAGS = -g  # -g is used to generate debug information for Valgrind
 
 # Directories
 SRC_DIR = src
@@ -29,7 +29,7 @@ prepare:
 $(OUTPUT): $(DEPENDENCY_CHECKER) $(PRAGMA_INJECTOR) $(DISPATCHER)
 	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -o $(OUTPUT) $(DEPENDENCY_CHECKER) $(PRAGMA_INJECTOR) $(DISPATCHER)
 
-# Profiling-enabled compilation
+# Profiling-enabled compilation (using Valgrind)
 $(PROFILING_OUTPUT): prepare $(DEPENDENCY_CHECKER) $(PRAGMA_INJECTOR) $(DISPATCHER)
 	$(CXX) $(CXXFLAGS) $(PROFILING_FLAGS) -I$(INCLUDE_DIR) -o $(PROFILING_OUTPUT) $(DEPENDENCY_CHECKER) $(PRAGMA_INJECTOR) $(DISPATCHER)
 
@@ -37,12 +37,13 @@ $(PROFILING_OUTPUT): prepare $(DEPENDENCY_CHECKER) $(PRAGMA_INJECTOR) $(DISPATCH
 run-dispatcher: prepare
 	$(OUTPUT) $(SRC) c # Change 'r' to 'n', 'c', or 'g' for specific modes
 
-# Profile and generate dependency graph
+# Profile and generate dependency graph using Valgrind
 profile-dispatcher: $(PROFILING_OUTPUT)
-	@echo "Running dispatcher with profiling in mode $(MODE)..."
-	$(PROFILING_OUTPUT) $(SRC) $(MODE)
-	gprof $(PROFILING_OUTPUT) gmon.out | gprof2dot -w | dot -Tpng -o $(LOGS_DIR)/dependency_graph_$(OUTPUT_NAME).png
-	rm -f gmon.out
+	@echo "Running dispatcher with Valgrind profiling in mode $(MODE)..."
+	valgrind --tool=callgrind ./$(PROFILING_OUTPUT) $(SRC) $(MODE)
+	gprof2dot -w -f callgrind -n10 -s callgrind.out.* -o $(LOGS_DIR)/valgrind.dot
+	dot -Tpng $(LOGS_DIR)/valgrind.dot -o $(LOGS_DIR)/dependency_graph_$(OUTPUT_NAME).png
+	rm -f callgrind.out.*
 
 # Comparison modes
 compare: compare-normal compare-cpu compare-gpu
@@ -60,7 +61,7 @@ compare-gpu:
 
 # Clean files
 clean:
-	rm -rf $(BUILD_DIR) $(LOGS_DIR) gmon.out
+	rm -rf $(BUILD_DIR) $(LOGS_DIR) callgrind.out.*
 	$(MAKE) reset-src
 
 reset-src:
