@@ -8,6 +8,7 @@
 #include <thread>
 #include <array>
 #include <memory>
+#include <iomanip>
 
 void log_execution(const std::string &mode, double executionTime) {
     std::ofstream logFile("logs/execution_log.txt", std::ios::app);
@@ -16,7 +17,8 @@ void log_execution(const std::string &mode, double executionTime) {
         return;
     }
 
-    logFile << "======================== Execution Log ========================\n";
+    // logFile << "======================== Execution Log ========================\n";
+   
     logFile << "Run Mode       : " << (mode == "n" ? "Normal" : (mode == "c" ? "CPU" : "GPU")) << "\n";
     logFile << "Execution Time : " << executionTime << " seconds\n";
     logFile.close();
@@ -69,11 +71,21 @@ void compile_and_execute(const std::string &filePath, char executionMode) {
 
     // Start timing
     auto startTime = std::chrono::high_resolution_clock::now();
-
+    // log the start time
+    std::ofstream logFile("logs/execution_log.txt", std::ios::app);
+    if (!logFile.is_open()) {
+        std::cerr << "Error: Unable to write to log file.\n";
+        return;
+    }
+    logFile << "======================== Execution Log ========================\n";
+    // logFile << "Start Time     : " << std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) << "\n";
+    auto startTimeFormatted = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    logFile << "Start Time     : " << std::put_time(std::localtime(&startTimeFormatted), "%c %Z") << "\n";
     if (std::system(compileCommand.c_str()) != 0) {
         std::cerr << "Compilation failed!\n";
         return;
     }
+    logFile.close();
 
     // Run the program
     std::string executeCommand = outputBinary;
@@ -95,10 +107,30 @@ void compile_and_execute(const std::string &filePath, char executionMode) {
         return;
     }
     auto executionEnd = std::chrono::high_resolution_clock::now();
-
     // Calculate execution time
     std::chrono::duration<double> executionTime = executionEnd - executionStart;
     log_execution(executionMode == 'g' ? "GPU" : (executionMode == 'c' ? "CPU" : "Normal"), executionTime.count());
+
+    // Stop logging GPU stats
+    if (executionMode == 'g') {
+        std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait for the last log
+        log_gpu_stats();  // Log one last time
+    }
+
+    // reopne the log file to log the end time
+    logFile.open("logs/execution_log.txt", std::ios::app);
+    if (!logFile.is_open()) {
+        std::cerr << "Error: Unable to write to log file.\n";
+        return;
+    }
+      
+    // log the end time
+    // logFile << "End Time       : " << std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) << "\n";
+    // format the end time
+    auto endTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    logFile << "End Time       : " << std::put_time(std::localtime(&endTime), "%c %Z") << "\n";
+
+    logFile.close();
 }
 
 int main(int argc, char *argv[]) {

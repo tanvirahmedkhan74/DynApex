@@ -2,11 +2,12 @@
 #include <vector>
 #include <cmath>
 #include <numeric>
+#include <iomanip>
 
 int main() {
     const int N = 1000;
-    const int M = 500;
-    const int K = 200;
+    const int M = 1000;
+    const int K = 500;
 
     // Create 3D arrays for computation
     std::vector<std::vector<std::vector<double>>> array1(N, 
@@ -17,7 +18,7 @@ int main() {
         std::vector<std::vector<double>>(M, std::vector<double>(K, 0)));
 
     // Initialize array1 with some values
-#pragma omp target teams distribute parallel for
+#pragma omp parallel for
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < M; j++) {
             for (int k = 0; k < K; k++) {
@@ -27,7 +28,7 @@ int main() {
     }
 
     // Initialize array2 with a linear sequence
-#pragma omp target teams distribute parallel for
+#pragma omp parallel for
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < M; j++) {
             for (int k = 0; k < K; k++) {
@@ -37,7 +38,7 @@ int main() {
     }
 
     // Perform a complex operation on array1 and array2
-#pragma omp target teams distribute parallel for
+#pragma omp parallel for
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < M; j++) {
             for (int k = 0; k < K; k++) {
@@ -48,7 +49,7 @@ int main() {
 
     // Calculate a global sum of the result array
     double globalSum = 0.0;
-#pragma omp target teams distribute parallel for
+#pragma omp parallel for
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < M; j++) {
             for (int k = 0; k < K; k++) {
@@ -60,7 +61,7 @@ int main() {
     // Output a sample value and global sum to confirm calculations
     std::cout << "Computation complete." << std::endl;
     std::cout << "Sample value: " << result[N/2][M/2][K/2] << std::endl;
-    std::cout << "Global sum: " << globalSum << std::endl;
+    std::cout << std::fixed << std::setprecision(2) << "Global sum: " << globalSum << std::endl;
 
     return 0;
 }
