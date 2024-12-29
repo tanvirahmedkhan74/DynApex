@@ -1,5 +1,20 @@
 ======================== Execution Log ========================
+<<<<<<< HEAD
 Start Time     : Wed Dec 11 00:05:14 2024 +06
 Run Mode       : GPU
 Execution Time : 49.7777 seconds
 End Time       : Wed Dec 11 00:06:04 2024 +06
+=======
+Run Mode       : Normal
+Execution Time : 6.40378 seconds
+======================== Execution Log ========================
+Run Mode       : CPU
+Execution Time : 4.68323 seconds
+Calculated Speedup : 2.10526
+Actual Speedup     : 1.36739
+======================== Execution Log ========================
+Run Mode       : GPU
+Execution Time : 2.75337 seconds
+Calculated Speedup : 3.25733
+Actual Speedup     : 2.3258
+>>>>>>> 843f03bcccb86925fbd3f95638741f311d80856a
